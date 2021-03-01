@@ -15,7 +15,7 @@ import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as request from 'supertest';
 import { PublicApiModule } from '../../src/api/public/public-api.module';
-import mediaConfigMock from '../../src/config/media.config.mock';
+import mediaConfigMock from '../../src/config/mock/media.config.mock';
 import { NotInDBError } from '../../src/errors/errors';
 import { GroupsModule } from '../../src/groups/groups.module';
 import { LoggerModule } from '../../src/logger/logger.module';
