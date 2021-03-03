@@ -32,7 +32,7 @@ export class HistoryService {
   async getEntriesByUser(user: User): Promise<HistoryEntry[]> {
     return await this.historyEntryRepository.find({
       where: { user: user },
-      relations: ['note'],
+      relations: ['note', 'user'],
     });
   }
 
@@ -81,7 +81,6 @@ export class HistoryService {
     entry.pinStatus = updateDto.pinStatus;
     return await this.historyEntryRepository.save(entry);
   }
-
   async deleteHistoryEntry(noteIdOrAlias: string, user: User): Promise<void> {
     const entry = await this.getEntryByNoteIdOrAlias(noteIdOrAlias, user);
     if (!entry) {
@@ -91,6 +90,16 @@ export class HistoryService {
     }
     await this.historyEntryRepository.remove(entry);
     return;
+  }
+
+  async deleteHistory(user: User): Promise<void> {
+    const entries: HistoryEntry[] = await this.getEntriesByUser(user);
+    if (!entries) {
+      return;
+    }
+    for (const entry of entries) {
+      await this.historyEntryRepository.remove(entry);
+    }
   }
 
   toHistoryEntryDto(entry: HistoryEntry): HistoryEntryDto {
