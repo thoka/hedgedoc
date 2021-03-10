@@ -32,6 +32,9 @@ import { HistoryModule } from '../../src/history/history.module';
 import { ConfigModule } from '@nestjs/config';
 import mediaConfigMock from '../../src/config/media.config.mock';
 import { User } from '../../src/users/user.entity';
+import { MediaService } from '../../src/media/media.service';
+import { MediaModule } from '../../src/media/media.module';
+import { promises as fs } from 'fs';
 
 // TODO Tests have to be reworked using UserService functions
 
@@ -40,6 +43,7 @@ describe('Notes', () => {
   let historyService: HistoryService;
   let notesService: NotesService;
   let userService: UsersService;
+  let mediaService: MediaService;
   let user: User;
 
   beforeAll(async () => {
@@ -64,6 +68,7 @@ describe('Notes', () => {
         AuthModule,
         UsersModule,
         HistoryModule,
+        MediaModule,
       ],
     })
       .overrideGuard(TokenAuthGuard)
@@ -73,6 +78,7 @@ describe('Notes', () => {
     notesService = moduleRef.get(NotesService);
     historyService = moduleRef.get(HistoryService);
     userService = moduleRef.get(UsersService);
+    mediaService = moduleRef.get(MediaService);
     user = await userService.createUser('hardcoded', 'Testy');
     await app.init();
   });
@@ -154,6 +160,41 @@ describe('Notes', () => {
       .expect('Content-Type', /json/)
       .expect(200);
     expect(response.body.revisions).toHaveLength(1);
+  });
+
+  it('GET /me/media', async () => {
+    const note1 = await notesService.createNote(
+      'This is a test note.',
+      'test8',
+      await userService.getUserByUsername('hardcoded'),
+    );
+    const note2 = await notesService.createNote(
+      'This is a test note.',
+      'test9',
+      await userService.getUserByUsername('hardcoded'),
+    );
+    const httpServer = app.getHttpServer();
+    const response1 = await request(httpServer)
+      .get('/me/media/')
+      .expect('Content-Type', /json/)
+      .expect(200);
+    expect(response1.body).toHaveLength(0);
+
+    const testImage = await fs.readFile('test/public-api/fixtures/test.png');
+    const url0 = await mediaService.saveFile(testImage, 'hardcoded', note1.id);
+    const url1 = await mediaService.saveFile(testImage, 'hardcoded', note1.id);
+    const url2 = await mediaService.saveFile(testImage, 'hardcoded', note2.id);
+    const url3 = await mediaService.saveFile(testImage, 'hardcoded', note2.id);
+
+    const response = await request(httpServer)
+      .get('/me/media/')
+      .expect('Content-Type', /json/)
+      .expect(200);
+    expect(response.body).toHaveLength(4);
+    expect(response.body[0].link).toEqual(url0);
+    expect(response.body[1].link).toEqual(url1);
+    expect(response.body[2].link).toEqual(url2);
+    expect(response.body[3].link).toEqual(url3);
   });
 
   afterAll(async () => {
