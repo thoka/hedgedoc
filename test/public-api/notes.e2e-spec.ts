@@ -28,6 +28,7 @@ import { MockAuthGuard } from '../../src/auth/mock-auth.guard';
 import { UsersService } from '../../src/users/users.service';
 import { User } from '../../src/users/user.entity';
 import { UsersModule } from '../../src/users/users.module';
+import { NotePermissionsUpdateDto } from '../../src/notes/note-permissions.dto';
 
 describe('Notes', () => {
   let app: INestApplication;
@@ -133,6 +134,31 @@ describe('Notes', () => {
   describe('DELETE /notes/{note}', () => {
     it('works with an existing alias', async () => {
       await notesService.createNote(content, 'test3', user);
+      await request(app.getHttpServer()).delete('/notes/test3').expect(200);
+      await expect(notesService.getNoteByIdOrAlias('test3')).rejects.toEqual(
+        new NotInDBError("Note with id/alias 'test3' not found."),
+      );
+    });
+    it('works with an existing alias with permissions', async () => {
+      const note = await notesService.createNote(content, 'test3', user);
+      const updateNotePermission = new NotePermissionsUpdateDto();
+      updateNotePermission.sharedToUsers = [
+        {
+          username: user.userName,
+          canEdit: true,
+        },
+      ];
+      updateNotePermission.sharedToGroups = [];
+      await notesService.updateNotePermissions(note, updateNotePermission);
+      const updatedNote = await notesService.getNoteByIdOrAlias(note.alias);
+      expect(updatedNote.userPermissions).toHaveLength(1);
+      expect(updatedNote.userPermissions[0].canEdit).toEqual(
+        updateNotePermission.sharedToUsers[0].canEdit,
+      );
+      expect(updatedNote.userPermissions[0].user.userName).toEqual(
+        user.userName,
+      );
+      expect(updatedNote.groupPermissions).toHaveLength(0);
       await request(app.getHttpServer()).delete('/notes/test3').expect(200);
       await expect(notesService.getNoteByIdOrAlias('test3')).rejects.toEqual(
         new NotInDBError("Note with id/alias 'test3' not found."),
