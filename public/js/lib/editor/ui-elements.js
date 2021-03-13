@@ -34,7 +34,10 @@ export const getUIElements = () => ({
     edit: $('.ui-edit'),
     view: $('.ui-view'),
     both: $('.ui-both'),
-    night: $('.ui-night')
+    night: $('.ui-night'),
+    tt_mixed: $('.ui-tt-mixed'),
+    tt_up: $('.ui-tt-up'),
+    tt_low: $('.ui-tt-low')
   },
   infobar: {
     lastchange: $('.ui-lastchange'),

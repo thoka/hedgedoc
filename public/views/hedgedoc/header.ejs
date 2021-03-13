@@ -96,6 +96,17 @@
             <span class="btn btn-link btn-file ui-help" title="<%= __('Help') %>" data-toggle="modal" data-target=".help-modal">
                 <i class="fa fa-question-circle"></i>
             </span>
+            <div class="btn-group" data-toggle="buttons">
+                <label class="btn btn-default ui-tt-mixed" title="<%= __('Edit') %> (Ctrl+Alt+M)">
+                    <input type="radio" name="texttransform" autocomplete="off">Aa
+                </label>
+                <label class="btn btn-default ui-tt-up" title="<%= __('Both') %> (Ctrl+Alt+U)">
+                    <input type="radio" name="texttransform" autocomplete="off">AA
+                </label>
+                <label class="btn btn-default ui-tt-low" title="<%= __('View') %> (Ctrl+Alt+L)">
+                    <input type="radio" name="texttransform" autocomplete="off">aa
+                </label>
+            </div>
         </ul>
         <ul class="nav navbar-nav navbar-right">
             <li id="online-user-list">

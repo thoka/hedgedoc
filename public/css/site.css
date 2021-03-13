@@ -21,3 +21,11 @@ body.modal-open {
     overflow-y: auto;
     padding-right: 0 !important;
 }
+
+.tt-up {
+    text-transform: uppercase;
+}
+
+.tt-low  {
+    text-transform: lowercase;
+}

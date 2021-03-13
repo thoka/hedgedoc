@@ -74,6 +74,7 @@ import Editor from './lib/editor'
 
 import getUIElements from './lib/editor/ui-elements'
 import modeType from './lib/modeType'
+import ttType from './lib/ttType'
 import appState from './lib/appState'
 
 require('../vendor/showup/showup')
@@ -969,6 +970,22 @@ function changeMode (type) {
     modeIcon.addClass('fa-pencil')
   }
   unlockNavbar()
+}
+
+// text transform 
+function changeTT (ttMode) {
+  console.log('changeTT',ttMode)
+  appState.ttMode = ttMode
+  ui.area.view.removeClass('tt-up')
+  ui.area.view.removeClass('tt-low')
+  switch (appState.ttMode) {
+    case ttType.up:
+      ui.area.view.addClass('tt-up')
+      break
+    case ttType.low:
+      ui.area.view.addClass('tt-low')
+      break
+  }
 }
 
 function lockNavbar () {
@@ -1879,6 +1896,20 @@ ui.toolbar.both.click(function () {
 ui.toolbar.night.click(function () {
   toggleNightMode()
 })
+
+// text transform
+ui.toolbar.tt_mixed.click(function () {
+  changeTT(ttType.mixed)
+})
+
+ui.toolbar.tt_up.click(function () {
+  changeTT(ttType.up)
+})
+
+ui.toolbar.tt_low.click(function () {
+  changeTT(ttType.low)
+})
+
 // permission
 // freely
 ui.infobar.permission.freely.click(function () {
