@@ -1254,18 +1254,6 @@ md.inline.ruler.disable('sub')
 
 const oldTextRenderer = md.renderer.rules.text
 
-const simpleHash = str => {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash &= hash; // Convert to 32bit integer
-  }
-  // hash &= 0x0fff;
-  return hash; 
-}
-
-
 function murmurhash2_32_gc(str, seed) {
   var
     l = str.length,
@@ -1327,6 +1315,21 @@ md.renderer.rules.text = function(tokens,idx) {
   words = words.map( word2span )
   return words.join(' ')
 }
+
+import responsiveVoice from './lib/talk/responsivevoice'
+console.log("responsiveVoice:", responsiveVoice)
+responsiveVoice.setDefaultVoice('Deutsch Female')
+
+function handleSelection(e) {
+  const s = document.getSelection()
+  if (s.type != 'Range') return  
+
+  console.log('handleSelection',s.toString())
+
+  responsiveVoice.speak(s.toString())
+}
+
+document.addEventListener('selectionchange', handleSelection)
 
 
 export default {
