@@ -1250,9 +1250,8 @@ md.use(speakerdeckPlugin)
 md.use(pdfPlugin)
 
 md.inline.ruler2.disable('text_collapse')
-md.inline.ruler.disable('sub')
+md.inline.ruler.disable('sub') // ~ will be used to mark syllable boundaries
 
-const oldTextRenderer = md.renderer.rules.text
 
 function murmurhash2_32_gc(str, seed) {
   var
@@ -1294,21 +1293,45 @@ function murmurhash2_32_gc(str, seed) {
 
 const toColor = h => new Uint32Array([h & 0xfff])[0].toString(16);
 
+const isVowel = c => {
+  // const vowels = 'aeiouäöüéèAEIOUÖÄÜ'
+  return /[aeiouöäüAEIOUÖÜ]/.test(c) 
+}
+
+const char2span = c => {
+  if (isVowel(c)) return `<span class="v">${c}</span>`
+  return c
+}
+
 const syl2span = w => {
-  if (!w) {return '&nbsp;'}
+  if (!w) {return ''}
   let w_ = w.replace(/[·\.]+/,'').toLowerCase() 
   let h = murmurhash2_32_gc(w_,12345) // simpleHash(w.toLowerCase())
   let c2 = toColor(h >> 12)
   let c1 = toColor(h) 
-  let parts = w.split(/[·\.]+/)
-  parts = parts.map( p => `<span class="l-${p.toLowerCase()}">${p}</span>` ).join('')
+  let parts = w.split('')
+  parts = parts.map( char2span  ).join('')
   return `<span class="word" style="border-bottom-color:#${c2}; border-top-color:#${c1}">${parts}</span>`
 }
 
-const word2span = w => {
-  let parts = w.split(/~+/)
-  return parts.map( syl2span ).join('')
+const isLetter = c => {
+  return /\w/.test(c)
 }
+
+const word2span = w => {
+  if (!w) {return '&nbsp;'}
+  let i=0,  e = w.length, j=e
+  // console.log(w)
+  // while (i<e && ! isLetter(w.charAt(i))) i++;
+  while (j>1 && !isLetter(w.charAt(j-1))) j--;
+
+  const r = w.substr(j)
+ 
+  let parts = w.substr(0,j).split(/[~.:']+/)
+  return parts.map( syl2span ).join('')  +r
+}
+
+const oldTextRenderer = md.renderer.rules.text
 
 md.renderer.rules.text = function(tokens,idx) {
   let words = oldTextRenderer(tokens,idx).split(' ')
