@@ -22,6 +22,9 @@ body.modal-open {
     padding-right: 0 !important;
 }
 
+/* talkpad additions 
+TODO move to better place
+*/
 .tt-up {
     text-transform: uppercase;
 }
@@ -31,8 +34,8 @@ body.modal-open {
 }
 
 #doc {
-    font-size: 250%;
-    line-height: 150%;
+    font-size: 180%;
+    line-height: 2;
 }
 
 span.word , span.word.night {
