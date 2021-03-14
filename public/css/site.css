@@ -54,3 +54,4 @@ span.l-o { xbackground-color: plum !important; color: red;  }
 span.l-u { xbackground-color: plum !important; color: red;  }
 span.l-i { xbackground-color: plum !important; color: red;  }
 
+#doc p::selection { background-color: white }
