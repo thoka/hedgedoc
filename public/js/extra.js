@@ -1317,20 +1317,15 @@ md.renderer.rules.text = function(tokens,idx) {
 }
 
 import responsiveVoice from './lib/talk/responsivevoice'
-console.log("responsiveVoice:", responsiveVoice)
 responsiveVoice.setDefaultVoice('Deutsch Female')
 
 function handleSelection(e) {
   const s = document.getSelection()
   if (s.type != 'Range') return  
-
-  console.log('handleSelection',s.toString())
-
-  responsiveVoice.speak(s.toString())
+  responsiveVoice.speak(s.toString().trim())
 }
 
 document.addEventListener('selectionchange', handleSelection)
-
 
 export default {
   md

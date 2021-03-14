@@ -754,7 +754,7 @@ var ResponsiveVoice = function () {
 
     self.default_rv = self.responsivevoices[0];
 
-    self.debug = true;
+    self.debug = false;
 
     self.rvsMapped = false;
 
@@ -1101,11 +1101,8 @@ var ResponsiveVoice = function () {
             //Small text
             multipartTextPush(text);
             }
-            console.log(multipartText);
 
             self.multipartText = multipartText;
-
-
 
             //Check we have permission to play audio (mobile)
             var speechAllowed = self.checkSpeechAllowed();
