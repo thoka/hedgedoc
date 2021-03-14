@@ -29,3 +29,28 @@ body.modal-open {
 .tt-low  {
     text-transform: lowercase;
 }
+
+#doc {
+    font-size: 250%;
+    line-height: 150%;
+}
+
+span.word , span.word.night {
+    border-bottom: 8px solid;
+    border-top: 8px solid;
+    
+    border-radius: 15px;
+    background-color: lightyellow;    
+    padding-left: 2px;
+    padding-right: 2px;
+    color: black;
+}
+
+span.l-a { xbackground-color: lightgreen !important; color: red;  }
+span.l-e { xbackground-color: lightblue !important; color: red; }
+span.l-ei { xbackground-color: plum !important; color: red;  }
+span.l-au { xbackground-color: plum !important; color: red;  }
+span.l-o { xbackground-color: plum !important; color: red;  }
+span.l-u { xbackground-color: plum !important; color: red;  }
+span.l-i { xbackground-color: plum !important; color: red;  }
+

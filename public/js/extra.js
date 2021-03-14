@@ -1249,6 +1249,86 @@ md.use(slidesharePlugin)
 md.use(speakerdeckPlugin)
 md.use(pdfPlugin)
 
+md.inline.ruler2.disable('text_collapse')
+md.inline.ruler.disable('sub')
+
+const oldTextRenderer = md.renderer.rules.text
+
+const simpleHash = str => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash &= hash; // Convert to 32bit integer
+  }
+  // hash &= 0x0fff;
+  return hash; 
+}
+
+
+function murmurhash2_32_gc(str, seed) {
+  var
+    l = str.length,
+    h = seed ^ l,
+    i = 0,
+    k;
+  
+  while (l >= 4) {
+  	k = 
+  	  ((str.charCodeAt(i) & 0xff)) |
+  	  ((str.charCodeAt(++i) & 0xff) << 8) |
+  	  ((str.charCodeAt(++i) & 0xff) << 16) |
+  	  ((str.charCodeAt(++i) & 0xff) << 24);
+    
+    k = (((k & 0xffff) * 0x5bd1e995) + ((((k >>> 16) * 0x5bd1e995) & 0xffff) << 16));
+    k ^= k >>> 24;
+    k = (((k & 0xffff) * 0x5bd1e995) + ((((k >>> 16) * 0x5bd1e995) & 0xffff) << 16));
+
+	h = (((h & 0xffff) * 0x5bd1e995) + ((((h >>> 16) * 0x5bd1e995) & 0xffff) << 16)) ^ k;
+
+    l -= 4;
+    ++i;
+  }
+  
+  switch (l) {
+  case 3: h ^= (str.charCodeAt(i + 2) & 0xff) << 16;
+  case 2: h ^= (str.charCodeAt(i + 1) & 0xff) << 8;
+  case 1: h ^= (str.charCodeAt(i) & 0xff);
+          h = (((h & 0xffff) * 0x5bd1e995) + ((((h >>> 16) * 0x5bd1e995) & 0xffff) << 16));
+  }
+
+  h ^= h >>> 13;
+  h = (((h & 0xffff) * 0x5bd1e995) + ((((h >>> 16) * 0x5bd1e995) & 0xffff) << 16));
+  h ^= h >>> 15;
+
+  return h >>> 0;
+}
+
+const toColor = h => new Uint32Array([h & 0xfff])[0].toString(16);
+
+const syl2span = w => {
+  if (!w) {return '&nbsp;'}
+  let w_ = w.replace(/[·\.]+/,'').toLowerCase() 
+  let h = murmurhash2_32_gc(w_,12345) // simpleHash(w.toLowerCase())
+  let c2 = toColor(h >> 12)
+  let c1 = toColor(h) 
+  let parts = w.split(/[·\.]+/)
+  parts = parts.map( p => `<span class="l-${p.toLowerCase()}">${p}</span>` ).join('')
+  return `<span class="word" style="border-bottom-color:#${c2}; border-top-color:#${c1}">${parts}</span>`
+}
+
+const word2span = w => {
+  let parts = w.split(/~+/)
+  return parts.map( syl2span ).join('')
+}
+
+md.renderer.rules.text = function(tokens,idx) {
+  let words = oldTextRenderer(tokens,idx).split(' ')
+  words = words.map( word2span )
+  return words.join(' ')
+}
+
+
 export default {
   md
 }
