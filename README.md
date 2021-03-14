@@ -1,5 +1,11 @@
 ![HedgeDoc Logo](docs/content/images/hedgedoc_logo_horizontal.svg)
 
+# TalkPad
+
+This repo keeps my experiments to implement some AAC features inside HedgeDoc.
+
+
+
 # HedgeDoc
 
 [![#HedgeDoc on matrix.org][matrix.org-image]][matrix.org-url]
