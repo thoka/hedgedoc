@@ -1000,7 +1000,7 @@ export const md = markdownit('default', {
   html: true,
   breaks: true,
   langPrefix: '',
-  linkify: true,
+  linkify: false,
   typographer: true,
   highlight: highlightRender
 })
@@ -1252,7 +1252,6 @@ md.use(pdfPlugin)
 md.inline.ruler2.disable('text_collapse')
 md.inline.ruler.disable('sub') // ~ will be used to mark syllable boundaries
 
-
 function murmurhash2_32_gc(str, seed) {
   var
     l = str.length,
@@ -1305,7 +1304,7 @@ const char2span = c => {
 
 const syl2span = w => {
   if (!w) {return ''}
-  let w_ = w.replace(/[·\.]+/,'').toLowerCase() 
+  let w_ = w.replace(/[·\.]+/g,'').toLowerCase() 
   let h = murmurhash2_32_gc(w_,12345) // simpleHash(w.toLowerCase())
   let c2 = toColor(h >> 12)
   let c1 = toColor(h) 
@@ -1315,7 +1314,7 @@ const syl2span = w => {
 }
 
 const isLetter = c => {
-  return /\w/.test(c)
+  return c.toLowerCase() != c.toUpperCase()
 }
 
 const word2span = w => {
@@ -1339,16 +1338,34 @@ md.renderer.rules.text = function(tokens,idx) {
   return words.join(' ')
 }
 
+
 import responsiveVoice from './lib/talk/responsivevoice'
+
+
 responsiveVoice.setDefaultVoice('Deutsch Female')
 
 function handleSelection(e) {
   const s = document.getSelection()
-  if (s.type != 'Range') return  
-  responsiveVoice.speak(s.toString().trim())
+  if (s.type != 'Range') return
+  let text = s.toString().trim().replace(/\s+/g,' ').split(' ').map(fixTalkProblems).join(' ')
+  console.log("talk:",text)
+  responsiveVoice.speak(text)
+}
+document.addEventListener('selectionchange', handleSelection)
+
+const talkReplacements = {
+  ha : "haah", sa: "sah", 
+  hi : "hieh", ti : "tieh", ni: "nie",
+  he : "hé", me : "mé", be: "bé", ne: "né", ke: "ké", te: "té", 
+  to : "tho", fo : "phoo",    
+  bu : "buuh", hu: "huuh", mu: "muuh", ku : "kú"
 }
 
-document.addEventListener('selectionchange', handleSelection)
+function fixTalkProblems(w) {
+  const wl = w.trim().toLowerCase()
+  if (wl in talkReplacements) return talkReplacements[wl] 
+  return w
+}
 
 export default {
   md
