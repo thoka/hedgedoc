@@ -1313,21 +1313,25 @@ const syl2span = w => {
   return `<span class="word" style="border-bottom-color:#${c2}; border-top-color:#${c1}">${parts}</span>`
 }
 
-const isLetter = c => {
+function isLetter(c) {
   return c.toLowerCase() != c.toUpperCase()
 }
 
-const word2span = w => {
-  if (!w) {return '&nbsp;'}
-  let i=0,  e = w.length, j=e
+function word2span(w) {
+  if (!w) { return ' &nbsp;'} 
+
+  let i = 0, e = w.length, j = e
   // console.log(w)
-  // while (i<e && ! isLetter(w.charAt(i))) i++;
-  while (j>1 && !isLetter(w.charAt(j-1))) j--;
+  
+  while ( i<e && !isLetter(w.charAt(i)) ) i++;
+  while ( j>i && !isLetter(w.charAt(j - 1)) ) j--;
 
   const r = w.substr(j)
- 
-  let parts = w.substr(0,j).split(/[~.:']+/)
-  return parts.map( syl2span ).join('')  +r
+  const p = w.substr(0,i)
+  const m = w.substr(i,j-i)
+
+  let parts = m.split(/[~.:']+/)
+  return p + parts.map(syl2span).join('') + r
 }
 
 const oldTextRenderer = md.renderer.rules.text
@@ -1338,27 +1342,34 @@ md.renderer.rules.text = function(tokens,idx) {
   return words.join(' ')
 }
 
+// import talk from "./lib/talk/talk"
+// talk.init()
+
 
 import responsiveVoice from './lib/talk/responsivevoice'
-
 
 responsiveVoice.setDefaultVoice('Deutsch Female')
 
 function handleSelection(e) {
   const s = document.getSelection()
   if (s.type != 'Range') return
-  let text = s.toString().trim().replace(/\s+/g,' ').split(' ').map(fixTalkProblems).join(' ')
-  console.log("talk:",text)
-  responsiveVoice.speak(text)
+  
+  console.log('SelectionChange:',e,s)
+  
+  // if (!s.anchorNode.parentElement.classList.contains('word') ) return
+
+  talk(s.toString().trim())
+
 }
 document.addEventListener('selectionchange', handleSelection)
 
 const talkReplacements = {
-  ha : "haah", sa: "sah", 
+  ha : "haah", sa: "sah", ma: "mah", na: "nah",
   hi : "hieh", ti : "tieh", ni: "nie",
   he : "hé", me : "mé", be: "bé", ne: "né", ke: "ké", te: "té", 
   to : "tho", fo : "phoo",    
-  bu : "buuh", hu: "huuh", mu: "muuh", ku : "kú"
+  bu : "buuh", hu: "huuh", mu: "muuh", ku : "kú",
+  en : "än", men: "män", vie: "fieh", len: "lähn"
 }
 
 function fixTalkProblems(w) {
@@ -1366,6 +1377,43 @@ function fixTalkProblems(w) {
   if (wl in talkReplacements) return talkReplacements[wl] 
   return w
 }
+
+globalThis.isLetter = isLetter
+Window.word2span = word2span
+
+function talk(t) {
+  
+  if (typeof t != 'string' ) {
+    let e = t
+    e.classList.add('click')
+    setTimeout( function() {e.classList.remove('click')}, 500 )
+    t=t.textContent
+  }
+   
+  let text = t.replace(/\s+/g,' ').split(' ').map(fixTalkProblems).join(' ')
+  console.log("talk:",text)
+  console.log("talk.isPlaying:",responsiveVoice.isPlaying())
+  responsiveVoice.cancel() 
+  responsiveVoice.speak(text)
+}
+
+function docClick(e) {
+  console.log("dockClick",e)
+  if (e.target.classList.contains('word')) { talk(e.target) }
+  else if (e.target.parentElement.classList.contains('word')) {talk(e.target.parentElement)}
+  else if (e.target.nodeName == 'P') talk(e.target)
+}
+
+function docMousemove(e) {
+  // console.log("mouseMove",e)
+}
+
+$().ready( function() {
+  console.log('starting ...')
+  $('#doc')
+    .on('click',docClick)
+    .on('mousemove',docMousemove)
+})
 
 export default {
   md
