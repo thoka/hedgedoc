@@ -1361,15 +1361,19 @@ function handleSelection(e) {
   talk(s.toString().trim())
 
 }
-document.addEventListener('selectionchange', handleSelection)
+// document.addEventListener('selectionchange', handleSelection)
 
 const talkReplacements = {
   ha : "haah", sa: "sah", ma: "mah", na: "nah",
-  hi : "hieh", ti : "tieh", ni: "nie",
+  hi : "hieh", ti : "tieh", ni: "nie", di: "die",
   he : "hé", me : "mé", be: "bé", ne: "né", ke: "ké", te: "té", 
   to : "tho", fo : "phoo",    
-  bu : "buuh", hu: "huuh", mu: "muuh", ku : "kú",
-  en : "än", men: "män", vie: "fieh", len: "lähn"
+  bu : "buuh", hu: "huuh", mu: "muuh", ku : "kú", wu: "wuh",
+  en : "än", men: "män", vie: "fieh", len: "lähn",
+  tof: "toff", lie: "lieh",
+  we: "weh", za: "zaah", zo:"zoo", zi: "zie", ze: "zeh", 
+  wi: "wie", ji: "jieh", ru: "ruh", lu: "luh", he: "hee", de: "dé", do: "doh"
+
 }
 
 function fixTalkProblems(w) {
@@ -1411,8 +1415,8 @@ function docMousemove(e) {
 $().ready( function() {
   console.log('starting ...')
   $('#doc')
-    .on('click',docClick)
-    .on('mousemove',docMousemove)
+    .on('mousedown',docClick)
+    // .on('mousemove',docMousemove)
 })
 
 export default {
