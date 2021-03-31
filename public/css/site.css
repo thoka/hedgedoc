@@ -52,7 +52,7 @@ span.word , span.word.night {
     display: inline-block;
     transition-property: all 0.3s ease;
     cursor: pointer; 
-    line-height: 1;
+    line-height: 1.2;
 
 }
 
@@ -76,3 +76,18 @@ span.v { color: red; }
      padding-left: 30px; padding-right: 30px; padding-top: 10px; padding-bottom: 10px }
 
 #doc.markdown-body {max-width: 100% }
+
+
+#doc .word { border-color: lightyellow; } 
+    
+span.syl:nth-child(2n) { color: blue }
+span.syl:nth-child(2n) span.v { color: darkred }
+
+span.syl.click , span.syl:nth-child(2n).click { 
+   background: yellow;
+}    
+   
+span.syl:hover { 
+   border: 2px solid black;
+}    
+

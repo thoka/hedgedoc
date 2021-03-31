@@ -1239,6 +1239,7 @@ function metaPlugin (md) {
   })
 }
 
+
 md.use(metaPlugin)
 md.use(emojijsPlugin)
 md.use(youtubePlugin)
@@ -1250,7 +1251,9 @@ md.use(speakerdeckPlugin)
 md.use(pdfPlugin)
 
 md.inline.ruler2.disable('text_collapse')
+
 md.inline.ruler.disable('sub') // ~ will be used to mark syllable boundaries
+
 
 function murmurhash2_32_gc(str, seed) {
   var
@@ -1294,7 +1297,7 @@ const toColor = h => new Uint32Array([h & 0xfff])[0].toString(16);
 
 const isVowel = c => {
   // const vowels = 'aeiouäöüéèAEIOUÖÄÜ'
-  return /[aeiouöäüAEIOUÖÜ]/.test(c) 
+  return /[aeiouöäüAEIOUÖÜéÉèÈ]/.test(c) 
 }
 
 const char2span = c => {
@@ -1302,15 +1305,32 @@ const char2span = c => {
   return c
 }
 
+function fowelPattern(s)  {
+  const rNotFowel=/[^aeiouAEIOUöäüÖÄÜéÉèÈ]+/g
+  const rDashes=/(^-*)|(-*$)/g    
+  return s.replace(rNotFowel,'-').replace(rDashes,'').toLowerCase().split('-')
+}
+
+let sylCounter = 0;
+
 const syl2span = w => {
   if (!w) {return ''}
   let w_ = w.replace(/[·\.]+/g,'').toLowerCase() 
+  let cl = 'syl'
+  let fp = fowelPattern(w_)
+  if (fp.length==1) {
+    cl = `${cl} s-${fp[0]}`
+  }
+
+  let parts = w.split('')
+  parts = parts.map( char2span  ).join('')
+  sylCounter+=1
+  return `<span id="s${sylCounter}" class="${cl}">${parts}</span>`
+  
   let h = murmurhash2_32_gc(w_,12345) // simpleHash(w.toLowerCase())
   let c2 = toColor(h >> 12)
   let c1 = toColor(h) 
-  let parts = w.split('')
-  parts = parts.map( char2span  ).join('')
-  return `<span class="word" style="border-bottom-color:#${c2}; border-top-color:#${c1}">${parts}</span>`
+  return `<span id="s${sylCounter}" class="${cl}" style="border-bottom-color:#${c2}; border-top-color:#${c1}">${parts}</span>`
 }
 
 function isLetter(c) {
@@ -1326,12 +1346,12 @@ function word2span(w) {
   while ( i<e && !isLetter(w.charAt(i)) ) i++;
   while ( j>i && !isLetter(w.charAt(j - 1)) ) j--;
 
-  const r = w.substr(j)
+  const r = w.substr(j) 
   const p = w.substr(0,i)
   const m = w.substr(i,j-i)
 
   let parts = m.split(/[~.:']+/)
-  return p + parts.map(syl2span).join('') + r
+  return `${p}<span class="word">${parts.map(syl2span).join('')}</span>${r}`
 }
 
 const oldTextRenderer = md.renderer.rules.text
@@ -1365,47 +1385,79 @@ function handleSelection(e) {
 
 const talkReplacements = {
   ha : "haah", sa: "sah", ma: "mah", na: "nah",
+  hal : "hall", 
   hi : "hieh", ti : "tieh", ni: "nie", di: "die",
-  he : "hé", me : "mé", be: "bé", ne: "né", ke: "ké", te: "té", 
+  be: "bäh", de: "dé", he : "hé", ke: "ké", me : "mé", ne: "né", te: "té", 
   to : "tho", fo : "phoo",    
   bu : "buuh", hu: "huuh", mu: "muuh", ku : "kú", wu: "wuh",
-  en : "än", men: "män", vie: "fieh", len: "lähn",
+  en : "än", vie: "fieh", 
   tof: "toff", lie: "lieh",
   we: "weh", za: "zaah", zo:"zoo", zi: "zie", ze: "zeh", 
-  wi: "wie", ji: "jieh", ru: "ruh", lu: "luh", he: "hee", de: "dé", do: "doh"
-
+  wi: "wie", ji: "jieh", ru: "ruh", lu: "luh", he: "hee", do: "doh",
 }
+
+const talkRR = [
+  [/en$/,'èn'],[/el$/,'èl']
+]
 
 function fixTalkProblems(w) {
   const wl = w.trim().toLowerCase()
   if (wl in talkReplacements) return talkReplacements[wl] 
+  for ( const [rule,repl] of talkRR ) {
+    if ( rule.test(wl) ) return wl.replace(rule,repl)
+  }
   return w
 }
 
 globalThis.isLetter = isLetter
 Window.word2span = word2span
 
+const USE_SSML = false
+
+function e2speak(e) {
+  if (e.nodeName==='#text') return e.textContent
+  if (e.nodeName==='SPAN') {
+    if (e.classList.contains('word')) {
+      if (USE_SSML) return `<mark name="${e.id}"/>${e.textContent}`
+      return e.textContent
+    }
+  }
+  const ret=[]
+  for (const se of e.childNodes) ret.push( e2speak(se) )
+  return ret.join('')
+}
+
+let lastmark = null;
+
+function onmark(m) {
+  if (lastmark) lastmark.classList.remove('click')
+  console.log('mark',m)
+}
+
 function talk(t) {
-  
   if (typeof t != 'string' ) {
     let e = t
     e.classList.add('click')
     setTimeout( function() {e.classList.remove('click')}, 500 )
-    t=t.textContent
+    t = e2speak(e)
+    if (USE_SSML)   
+      t=`<?xml version="1.0"?>\r\n<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">${t}</speak>`
   }
    
   let text = t.replace(/\s+/g,' ').split(' ').map(fixTalkProblems).join(' ')
   console.log("talk:",text)
   console.log("talk.isPlaying:",responsiveVoice.isPlaying())
   responsiveVoice.cancel() 
-  responsiveVoice.speak(text)
+  responsiveVoice.speak(text,null,{ 'onmark' : onmark})
 }
 
 function docClick(e) {
   console.log("dockClick",e)
-  if (e.target.classList.contains('word')) { talk(e.target) }
-  else if (e.target.parentElement.classList.contains('word')) {talk(e.target.parentElement)}
-  else if (e.target.nodeName == 'P') talk(e.target)
+  var t
+
+  t = e.target.closest('.syl') ; if (t) { talk(t); return }
+  t = e.target.closest('.word'); if (t) { talk(t); return }
+  if (e.target.nodeName == 'P') talk(e.target)
 }
 
 function docMousemove(e) {
@@ -1419,6 +1471,7 @@ $().ready( function() {
     // .on('mousemove',docMousemove)
 })
 
+const test = "TEST"
 export default {
-  md
+  md, test
 }
