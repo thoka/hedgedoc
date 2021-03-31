@@ -1332,7 +1332,7 @@ const syl2span = w => {
 }
 
 function isLetter(c) {
-  return c.toLowerCase() != c.toUpperCase()
+  return ( c.toLowerCase() != c.toUpperCase() ) || (c >= '0' && c <= '9') 
 }
 
 function word2span(w) {
