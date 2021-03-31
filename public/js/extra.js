@@ -1239,7 +1239,6 @@ function metaPlugin (md) {
   })
 }
 
-
 md.use(metaPlugin)
 md.use(emojijsPlugin)
 md.use(youtubePlugin)
@@ -1253,7 +1252,6 @@ md.use(pdfPlugin)
 md.inline.ruler2.disable('text_collapse')
 
 md.inline.ruler.disable('sub') // ~ will be used to mark syllable boundaries
-
 
 function murmurhash2_32_gc(str, seed) {
   var
@@ -1351,6 +1349,7 @@ function word2span(w) {
   const m = w.substr(i,j-i)
 
   let parts = m.split(/[~.:']+/)
+  if (parts.length == 0 || ( parts.length == 1 && parts[0].length==0 )) return `${p}${r}`
   return `${p}<span class="word">${parts.map(syl2span).join('')}</span>${r}`
 }
 
@@ -1470,6 +1469,12 @@ $().ready( function() {
     .on('mousedown',docClick)
     // .on('mousemove',docMousemove)
 })
+
+
+// add click target after links
+
+
+
 
 const test = "TEST"
 export default {
