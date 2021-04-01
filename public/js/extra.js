@@ -1249,7 +1249,7 @@ md.use(slidesharePlugin)
 md.use(speakerdeckPlugin)
 md.use(pdfPlugin)
 
-md.inline.ruler2.disable('text_collapse')
+// md.inline.ruler2.disable('text_collapse')
 
 md.inline.ruler.disable('sub') // ~ will be used to mark syllable boundaries
 
@@ -1338,9 +1338,16 @@ function isLetter(c) {
 function word2span(w) {
   if (!w) { return ' &nbsp;'} 
 
+  // console.log("word2span:",w.charAt(0))
+
+  if ( w.match(/^▶️/) ) {
+    return `<span class="word" data-talk="${w.substr(2).replace(/_/g,' ')}">▶️</span>`
+  }
+
   let i = 0, e = w.length, j = e
   // console.log(w)
   
+
   while ( i<e && !isLetter(w.charAt(i)) ) i++;
   while ( j>i && !isLetter(w.charAt(j - 1)) ) j--;
 
@@ -1393,10 +1400,12 @@ const talkReplacements = {
   tof: "toff", lie: "lieh",
   we: "weh", za: "zaah", zo:"zoo", zi: "zie", ze: "zeh", 
   wi: "wie", ji: "jieh", ru: "ruh", lu: "luh", he: "hee", do: "doh",
+  mami : "mammie"
+
 }
 
 const talkRR = [
-  [/en$/,'èn'],[/el$/,'èl']
+  [/en$/,'èn'],[/el$/,'èl'],[/mi$/,'mie']
 ]
 
 function fixTalkProblems(w) {
@@ -1416,6 +1425,7 @@ const USE_SSML = false
 function e2speak(e) {
   if (e.nodeName==='#text') return e.textContent
   if (e.nodeName==='SPAN') {
+    if (e.dataset.talk) return e.dataset.talk
     if (e.classList.contains('word')) {
       if (USE_SSML) return `<mark name="${e.id}"/>${e.textContent}`
       return e.textContent
@@ -1445,15 +1455,15 @@ function talk(t) {
    
   let text = t.replace(/\s+/g,' ').split(' ').map(fixTalkProblems).join(' ')
   console.log("talk:",text)
-  console.log("talk.isPlaying:",responsiveVoice.isPlaying())
+  // console.log("talk.isPlaying:",responsiveVoice.isPlaying())
   responsiveVoice.cancel() 
-  responsiveVoice.speak(text,null,{ 'onmark' : onmark})
+  responsiveVoice.speak(text,null,{ 'onmark' : onmark, })
 }
 
-function docClick(e) {
-  console.log("dockClick",e)
+function docClick(e) { 
+  // console.log("dockClick",e.button, e)
+  if (e.button != 0) return;
   var t
-
   t = e.target.closest('.syl') ; if (t) { talk(t); return }
   t = e.target.closest('.word'); if (t) { talk(t); return }
   if (e.target.nodeName == 'P') talk(e.target)
