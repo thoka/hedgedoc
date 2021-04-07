@@ -22,9 +22,10 @@ body.modal-open {
     padding-right: 0 !important;
 }
 
-/* talkpad additions 
-TODO move to better
-*/
+
+/* talkpad additions  --- TODO move to better place */
+
+
 .tt-up {
     text-transform: uppercase;
 }
@@ -34,16 +35,55 @@ TODO move to better
 }
 
 #doc {
-    font-size: 180%;
+    font-size: 120%;
     line-height: 2.5;
 }
 
-span.word , span.word.night {
-    border-bottom: 10px solid;
-    border-top: 10px solid;
+
+#doc {
+    --talking-color: yellow;
+}
+
+#doc.markdown-body {max-width: 100% }
+
+#xdoc p { display: block; }
+#doc p { 
+    border-radius: 30px; 
+    border: 5px solid rgba(255,255,255,0.5);
+    padding-left: 30px; padding-right: 30px; padding-top: 10px; padding-bottom: 10px }
+
+#doc p::selection { background-color: white }
     
-    border-radius: 15px;
-    background-color: lightyellow;    
+.mildenberger span.syl:nth-child(2n+1) { color: blue }
+.mildenberger span.syl:nth-child(2n)  { color: red }
+
+.thick-vocals span.v { font-weight: bold; }
+
+#doc p.talking,
+span.word.talking 
+  { background-color: var(--talking-color); }
+
+
+span.syl.talking , 
+span.syl:nth-child(2n).talking 
+  {  background: var(--talking-color); }    
+   
+span.syl.selected { 
+   border-top: 5px solid black;
+   border-bottom: 5px solid black;
+   border-radius: 10px;
+}    
+
+span.word.selected { 
+    border-top: 6px solid black;
+    border-bottom: 6px solid black;
+    border-radius: 10px;
+}    
+ 
+
+span.word , span.word.night {
+    border-bottom: 6px solid  rgba(255,255,255,0.5);
+    border-top: 6px solid  rgba(255,255,255,0.5); ;     
     padding-left: 2px;
     padding-right: 2px;
     padding-top:   2px;
@@ -53,41 +93,13 @@ span.word , span.word.night {
     transition-property: all 0.3s ease;
     cursor: pointer; 
     line-height: 1.2;
-
 }
 
-#doc p {  display: block; }
-
-span.word:hover { transform: scale(1.2) }
-#doc p:hover { border: 10px solid black }
-
-span.word.click { background-color: yellow !important; transform: scale(1.4) }
-
-#doc p.click  { background-color: yellow }
-
-span.v { color: red; }
-
-#doc p::selection { background-color: white }
-
-.ui-view-area, #doc { background-color: gray }
-
-#doc p { background-color: lightgray; border-radius: 30px;
-     border: 10px solid gray;
-     padding-left: 30px; padding-right: 30px; padding-top: 10px; padding-bottom: 10px }
-
-#doc.markdown-body {max-width: 100% }
-
-
-#doc .word { border-color: lightyellow; } 
-    
-span.syl:nth-child(2n) { color: blue }
-span.syl:nth-child(2n) span.v { color: darkred }
-
-span.syl.click , span.syl:nth-child(2n).click { 
-   background: yellow;
+#doc p.selected { 
+    border-left: 6px solid black;
+    border-right: 6px solid black;
+    border-radius: 10px;
 }    
-   
-span.syl:hover { 
-   border: 2px solid black;
-}    
+
+
 

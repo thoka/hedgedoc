@@ -1440,15 +1440,15 @@ function e2speak(e) {
 let lastmark = null;
 
 function onmark(m) {
-  if (lastmark) lastmark.classList.remove('click')
+  if (lastmark) lastmark.classList.remove('talking')
   console.log('mark',m)
 }
 
 function talk(t) {
   if (typeof t != 'string' ) {
     let e = t
-    e.classList.add('click')
-    setTimeout( function() {e.classList.remove('click')}, 500 )
+    e.classList.add('talking')
+    setTimeout( function() {e.classList.remove('talking')}, 500 )
     t = e2speak(e)
     if (USE_SSML)   
       t=`<?xml version="1.0"?>\r\n<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">${t}</speak>`
@@ -1465,29 +1465,56 @@ function docClick(e) {
   // console.log("dockClick",e.button, e)
   if (e.button != 0) return;
   var t
-  t = e.target.closest('.syl') ; if (t) { talk(t); return }
+  t = e.target.closest('.syl') ; if (t && t.classList.contains('selected')) { talk(t); return }
   t = e.target.closest('.word'); if (t) { talk(t); return }
-  if (e.target.nodeName == 'P') talk(e.target)
+  if (e.target.nodeName == 'P') return talk(e.target)
+
+}
+
+function isInMiddlePosition(e,el) {
+  var rect = el.getBoundingClientRect();
+  var w = rect.right - rect.left;
+  var h = rect.bottom - rect.top;
+  var x = (e.clientX - rect.left)/w;
+  var y = (e.clientY - rect.top)/h;
+  var middle = x >= 0.25 && x <= 0.75 && y >= 0.3 && y <= 0.7;
+  return middle 
+}
+
+var selectedElement = null
+
+function deselect() {
+  if (selectedElement) {
+    selectedElement.classList.remove('selected')
+    selectedElement = null           
+  }
+}
+
+function select(el) {
+  if ( el!=selectedElement ) deselect()
+  el.classList.add('selected')
+  selectedElement = el
 }
 
 function docMousemove(e) {
-  // console.log("mouseMove",e)
+  let el = e.target.closest('.syl')
+  if ( el && isInMiddlePosition(e,el) ) return select(el)
+
+  el = e.target.closest('.word')
+  if (el) return select(el)
+
+  el = e.target.closest('p')
+  if (el) return select(el)
+  deselect()  
 }
 
 $().ready( function() {
   console.log('starting ...')
   $('#doc')
     .on('mousedown',docClick)
-    // .on('mousemove',docMousemove)
+    .on('mousemove',docMousemove)
 })
 
-
-// add click target after links
-
-
-
-
-const test = "TEST"
 export default {
-  md, test
+  md
 }
