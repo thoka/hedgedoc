@@ -18,13 +18,14 @@ import markdownitContainer from 'markdown-it-container'
 import Plugin from 'markdown-it-regexp'
 
 require('prismjs/themes/prism.css')
-require('prismjs/components/prism-wiki')
-require('prismjs/components/prism-haskell')
-require('prismjs/components/prism-go')
-require('prismjs/components/prism-typescript')
-require('prismjs/components/prism-jsx')
-require('prismjs/components/prism-makefile')
-require('prismjs/components/prism-gherkin')
+// require('prismjs/components/prism-wiki')
+// require('prismjs/components/prism-haskell')
+// require('prismjs/components/prism-go')
+// require('prismjs/components/prism-typescript')
+// require('prismjs/components/prism-jsx')
+// require('prismjs/components/prism-makefile')
+// require('prismjs/components/prism-gherkin')
+
 
 require('./lib/common/login')
 require('./locale')
@@ -288,7 +289,7 @@ export function finishView (view) {
     .click(function () {
       imgPlayiframe(this, '//www.youtube.com/embed/')
     })
-    // vimeo
+  // vimeo
   view.find('div.vimeo.raw').removeClass('raw')
     .click(function () {
       imgPlayiframe(this, '//player.vimeo.com/video/')
@@ -307,7 +308,7 @@ export function finishView (view) {
         }
       })
     })
-    // gist
+  // gist
   view.find('code[data-gist-id]').each((key, value) => {
     if ($(value).children().length === 0) { $(value).gist(window.viewAjaxCallback) }
   })
@@ -488,7 +489,7 @@ export function finishView (view) {
         height: '400px'
       })
     })
-    // syntax highlighting
+  // syntax highlighting
   view.find('code.raw').removeClass('raw')
     .each((key, value) => {
       const langDiv = $(value)
@@ -975,7 +976,7 @@ function highlightRender (code, lang) {
     return `<div class="mermaid raw">${code}</div>`
   } else if (lang === 'abc') {
     return `<div class="abc raw">${code}</div>`
-  }
+  } 
   const result = {
     value: code
   }
@@ -1400,8 +1401,8 @@ const talkReplacements = {
   tof: "toff", lie: "lieh",
   we: "weh", za: "zaah", zo:"zoo", zi: "zie", ze: "zeh", 
   wi: "wie", ji: "jieh", ru: "ruh", lu: "luh", he: "hee", do: "doh",
-  mami : "mammie"
-
+  mami : "mammie", punk: "puhnk", gren: "grenn", zen: 'tsän', dig: 'dich', stän: 'stänn',
+  sem : 'sämm' , spra: 'schpra', chen: 'hen', che: 'hä'
 }
 
 const talkRR = [
