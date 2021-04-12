@@ -17,6 +17,9 @@ import markdownitContainer from 'markdown-it-container'
 /* Defined regex markdown it plugins */
 import Plugin from 'markdown-it-regexp'
 
+import _ from 'lodash'
+
+
 require('prismjs/themes/prism.css')
 // require('prismjs/components/prism-wiki')
 // require('prismjs/components/prism-haskell')
@@ -1336,6 +1339,29 @@ function isLetter(c) {
   return ( c.toLowerCase() != c.toUpperCase() ) || (c >= '0' && c <= '9') 
 }
 
+function isUppercase(s) {
+  return ( s.charAt(0).toUpperCase() == s.charAt(0) )
+}
+
+const hyphenizerCache = {
+  'toka' : 'To.ka'
+}
+
+window.hyphenizerCache = hyphenizerCache
+
+let hyphenizerQueue = []
+
+function hyphenizeWord(w) {
+  let wasUppercase = isUppercase(w)
+  if (w in hyphenizerCache) {
+    w = hyphenizerCache[w]
+    if (wasUppercase) w = w.charAt(0).toUpperCase() + w.substring(1)
+    return ['word','',w.split('.')]
+  }
+  hyphenizerQueue.push(w)
+  return ['word hyphenize',` data-hyphenize="${w}"`,[w]]  
+}
+
 function word2span(w) {
   if (!w) { return ' &nbsp;'} 
 
@@ -1348,32 +1374,66 @@ function word2span(w) {
   let i = 0, e = w.length, j = e
   // console.log(w)
   
-
   while ( i<e && !isLetter(w.charAt(i)) ) i++;
   while ( j>i && !isLetter(w.charAt(j - 1)) ) j--;
 
   const r = w.substr(j) 
   const p = w.substr(0,i)
-  const m = w.substr(i,j-i)
+  let m = w.substr(i,j-i)
+  // hyphenize
 
   let parts = m.split(/[~.:']+/)
   if (parts.length == 0 || ( parts.length == 1 && parts[0].length==0 )) return `${p}${r}`
+  if (parts.length == 1) {
+    var cl,data
+    [cl, data , parts ] = hyphenizeWord(m)
+    return `${p}<span class="word"${data}>${parts.map(syl2span).join('')}</span>${r}`
+  } 
+
   return `${p}<span class="word">${parts.map(syl2span).join('')}</span>${r}`
 }
 
 const oldTextRenderer = md.renderer.rules.text
 
+var io
+
+const getHyphenation = _.debounce( function() {
+  if (hyphenizerQueue.length) {
+    io.emit('hyphenize',hyphenizerQueue)
+    hyphenizerQueue = []
+  }
+},50 )
+
+function updateHyphenation(data) { 
+  var key,val
+  for ( [key,val] of data) {
+    if (val) hyphenizerCache[key] = val
+  } 
+
+  document.querySelectorAll('[data-hyphenize]').forEach( applyHyphenation)  
+}
+
+function applyHyphenation(el) {
+
+  console.log('applyHyphenation',el)
+  console.log(el.dataset.hyphenize)
+  el.outerHTML = word2span(el.dataset.hyphenize)
+  delete el.dataset.hyphenize 
+}
+
 md.renderer.rules.text = function(tokens,idx) {
   let words = oldTextRenderer(tokens,idx).split(' ')
   words = words.map( word2span )
+  getHyphenation()
   return words.join(' ')
 }
 
 // import talk from "./lib/talk/talk"
 // talk.init()
 
-
 import responsiveVoice from './lib/talk/responsivevoice'
+// import { padStart } from 'lodash'
+// import hyphenize from '../../lib/hyphenize/hyphenizer'
 
 responsiveVoice.setDefaultVoice('Deutsch Female')
 
@@ -1513,6 +1573,8 @@ $().ready( function() {
   $('#doc')
     .on('mousedown',docClick)
     .on('mousemove',docMousemove)
+    io = window.socket // TODO remove global 
+    io.on('hyphenized', updateHyphenation)   
 })
 
 export default {

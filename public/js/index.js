@@ -2053,6 +2053,10 @@ const socket = io.connect({
   timeout: 5000, // 5 secs to timeout,
   reconnectionAttempts: 20 // retry 20 times on connect failed
 })
+
+window.socket = socket // for playing. TODO: remove
+
+
 // overwrite original event for checking login state
 const on = socket.on
 socket.on = function () {
@@ -2141,6 +2145,7 @@ socket.on('version', function (data) {
     }
   }
 })
+
 let authors = []
 let authorship = []
 let authorMarks = {} // temp variable
