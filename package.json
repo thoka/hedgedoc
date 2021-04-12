@@ -84,7 +84,6 @@
     "markdown-it-sup": "^1.0.0",
     "mathjax": "^2.7.6",
     "mattermost": "^3.4.0",
-    "megahash": "^1.0.5",
     "mermaid": "^8.5.1",
     "meta-marked": "git+https://github.com/hedgedoc/meta-marked",
     "method-override": "^3.0.0",
