@@ -1336,11 +1336,15 @@ const syl2span = w => {
 }
 
 function isLetter(c) {
-  return ( c.toLowerCase() != c.toUpperCase() ) || (c >= '0' && c <= '9') 
+  return ( c.toLowerCase() != c.toUpperCase() ) || (c >= '0' && c <= '9') || isSymbol(c)
 }
 
 function isUppercase(s) {
   return ( s.charAt(0).toUpperCase() == s.charAt(0) )
+}
+
+function isSymbol(c,pos=0) { // TODO this is just a quick hack; do it right 
+  return c.codePointAt(pos) > 255
 }
 
 const hyphenizerCache = {
@@ -1363,9 +1367,10 @@ function hyphenizeWord(w) {
 }
 
 function word2span(w) {
-  if (!w) { return ' &nbsp;'} 
+  if (!w) { return ' '} 
 
   // console.log("word2span:",w.charAt(0))
+
 
   if ( w.match(/^▶️/) ) {
     return `<span class="word" data-talk="${w.substr(2).replace(/_/g,' ')}">▶️</span>`
@@ -1374,6 +1379,16 @@ function word2span(w) {
   let i = 0, e = w.length, j = e
   // console.log(w)
   
+  let symbols =''
+  if (w.length >1 && isSymbol(w,0)  && ! isSymbol(w,w.length-1) ) {
+    while (i<w.length && isSymbol(w,i) ) i++; 
+  }
+  if (i>0) {
+    symbols = `<span class="symbols" data-talk="">${w.substr(0,i)}</span>`
+    w = w.substr(i)
+    i = 0
+  } 
+
   while ( i<e && !isLetter(w.charAt(i)) ) i++;
   while ( j>i && !isLetter(w.charAt(j - 1)) ) j--;
 
@@ -1387,10 +1402,11 @@ function word2span(w) {
   if (parts.length == 1) {
     var cl,data
     [cl, data , parts ] = hyphenizeWord(m)
-    return `${p}<span class="word"${data}>${parts.map(syl2span).join('')}</span>${r}`
+    // if (symbols) { data += ` data-talk="${m}"` }
+    return `${p}${symbols}<span class="word w1"${data}>${parts.map(syl2span).join('')}</span>${r}`
   } 
 
-  return `${p}<span class="word">${parts.map(syl2span).join('')}</span>${r}`
+  return `${p}${symbols}<span class="word w2">${parts.map(syl2span).join('')}</span>${r}`
 }
 
 const oldTextRenderer = md.renderer.rules.text
@@ -1414,9 +1430,8 @@ function updateHyphenation(data) {
 }
 
 function applyHyphenation(el) {
-
-  console.log('applyHyphenation',el)
-  console.log(el.dataset.hyphenize)
+  // console.log('applyHyphenation',el)
+  // console.log(el.dataset.hyphenize)
   el.outerHTML = word2span(el.dataset.hyphenize)
   delete el.dataset.hyphenize 
 }
@@ -1451,7 +1466,7 @@ function handleSelection(e) {
 // document.addEventListener('selectionchange', handleSelection)
 
 const talkReplacements = {
-  ha : "haah", sa: "sah", ma: "mah", na: "nah",
+  ha : "haah", sa: "sah", ma: "mah", na: "nah", fah: "fa",
   hal : "hall", 
   hi : "hieh", ti : "tieh", ni: "nie", di: "die",
   be: "bäh", de: "dé", he : "hé", ke: "ké", me : "mé", ne: "né", te: "té", 
@@ -1462,7 +1477,8 @@ const talkReplacements = {
   we: "weh", za: "zaah", zo:"zoo", zi: "zie", ze: "zeh", 
   wi: "wie", ji: "jieh", ru: "ruh", lu: "luh", he: "hee", do: "doh",
   mami : "mammie", punk: "puhnk", gren: "grenn", zen: 'tsän', dig: 'dich', stän: 'stänn',
-  sem : 'sämm' , spra: 'schpra', chen: 'hen', che: 'hä'
+  sem : 'sämm' , spra: 'schpra', chen: 'hen', che: 'hä', nem: 'nemm', ble: 'bleh', ie: 'i',
+  tag: "Tag"
 }
 
 const talkRR = [
@@ -1500,8 +1516,8 @@ function e2speak(e) {
 let lastmark = null;
 
 function onmark(m) {
-  if (lastmark) lastmark.classList.remove('talking')
-  console.log('mark',m)
+  // if (lastmark) lastmark.classList.remove('talking')
+  console.log('mark callback',m)
 }
 
 function talk(t) {
@@ -1518,7 +1534,7 @@ function talk(t) {
   console.log("talk:",text)
   // console.log("talk.isPlaying:",responsiveVoice.isPlaying())
   responsiveVoice.cancel() 
-  responsiveVoice.speak(text,null,{ 'onmark' : onmark, })
+  responsiveVoice.speak(text,null,{ onmark, onboundary: onmark , lang:'de'})
 }
 
 function docClick(e) { 
@@ -1531,14 +1547,14 @@ function docClick(e) {
 
 }
 
-function isInMiddlePosition(e,el) {
-  var rect = el.getBoundingClientRect();
-  var w = rect.right - rect.left;
-  var h = rect.bottom - rect.top;
-  var x = (e.clientX - rect.left)/w;
-  var y = (e.clientY - rect.top)/h;
-  var middle = x >= 0.25 && x <= 0.75 && y >= 0.3 && y <= 0.7;
-  return middle 
+function isInSylPosition(e,el) {
+  var rect = el.getBoundingClientRect()
+  var w = rect.right - rect.left
+  var h = rect.bottom - rect.top
+  var x = (e.clientX - rect.left)/w
+  var y = (e.clientY - rect.top)/h
+  // console.log(x, y)
+  return  (y >= 0.65) && (x>0.1 || x <0.9)
 }
 
 var selectedElement = null
@@ -1558,7 +1574,7 @@ function select(el) {
 
 function docMousemove(e) {
   let el = e.target.closest('.syl')
-  if ( el && isInMiddlePosition(e,el) ) return select(el)
+  if ( el && isInSylPosition(e,el) ) return select(el)
 
   el = e.target.closest('.word')
   if (el) return select(el)
